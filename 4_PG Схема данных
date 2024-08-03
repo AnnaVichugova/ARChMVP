@@ -1,0 +1,80 @@
+CREATE TABLE order_product(
+    id SERIAL NOT NULL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    product INTEGER NOT NULL,
+    quantity INTEGER NOT NULL
+);
+CREATE TABLE product(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    provider INTEGER NOT NULL,
+    price FLOAT(53) NOT NULL,
+    quantity INTEGER NOT NULL
+);
+CREATE TABLE customer_status(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL
+);
+CREATE TABLE jwts(
+    id SERIAL NOT NULL PRIMARY KEY,
+    moment TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    token TEXT NOT NULL,
+    sysuser INTEGER NOT NULL
+);
+CREATE TABLE users(
+    id SERIAL NOT NULL PRIMARY KEY,
+    login VARCHAR NOT NULL UNIQUE,
+    password VARCHAR NOT NULL,
+    role INTEGER NOT NULL
+);
+CREATE TABLE order_status(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL
+);
+CREATE TABLE roles(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL
+);
+CREATE TABLE provider(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    phone VARCHAR NOT NULL,
+    email VARCHAR NOT NULL,
+    address VARCHAR NOT NULL
+);
+CREATE TABLE orders(
+    id SERIAL NOT NULL PRIMARY KEY,
+    customer INTEGER NOT NULL,
+    status INTEGER NOT NULL,
+    ammount FLOAT(53) NOT NULL,
+    date DATE NOT NULL
+);
+CREATE TABLE customer(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+	email VARCHAR NOT NULL UNIQUE,
+    phone VARCHAR NOT NULL,
+    status INTEGER NOT NULL
+);
+CREATE TABLE letter(
+    id SERIAL NOT NULL PRIMARY KEY,
+    moment TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    email VARCHAR NOT NULL,
+    mail TEXT NOT NULL
+);
+ALTER TABLE
+    product ADD CONSTRAINT product_provider_foreign FOREIGN KEY(provider) REFERENCES provider(id);
+ALTER TABLE
+    order_product ADD CONSTRAINT order_product_order_id_foreign FOREIGN KEY(order_id) REFERENCES orders(id);
+ALTER TABLE
+    order_product ADD CONSTRAINT order_product_product_foreign FOREIGN KEY(product) REFERENCES product(id);
+ALTER TABLE
+    customer ADD CONSTRAINT customer_status_foreign FOREIGN KEY(status) REFERENCES customer_status(id);
+ALTER TABLE
+    users ADD CONSTRAINT users_role_foreign FOREIGN KEY(role) REFERENCES roles(id);
+ALTER TABLE
+    orders ADD CONSTRAINT orders_status_foreign FOREIGN KEY(status) REFERENCES order_status(id);
+ALTER TABLE
+    orders ADD CONSTRAINT orders_customer_foreign FOREIGN KEY(customer) REFERENCES customer(id);
+ALTER TABLE
+    jwts ADD CONSTRAINT jwts_sysuser_foreign FOREIGN KEY(sysuser) REFERENCES users(id);
