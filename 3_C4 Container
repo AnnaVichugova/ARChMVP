@@ -1,0 +1,51 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Уровень контейнеров
+LAYOUT_LANDSCAPE()
+
+Person(M, "Менеджер", "Менеджер интернет-магазина")
+Person(O, "Оператор", "Оператор склада")
+Person(C, "Покупатель", "Клиент магазина")
+
+System_Boundary(IS, IShop) {
+  Container(F, Flask-App, "Python-приложение в Colab")
+  ContainerDb(PG, PostgreSQL, "Сервер СУБД Hasura")
+}
+
+System_Ext(YF, "Yandex Forms", "Клиент для отправки данных")
+System_Ext(US, Unisender, "Внешняя система email-уведомлений")
+System_Ext(TG, Telegram, "Внешняя система TG-уведомлений")
+System_Ext(YD, "Yandex DataLens", "Аналитическая BI-система")
+
+System_Boundary(B, "Внешний шлюз онлайн-оплаты") {
+  Container(K, Kafka, Upstash)
+  ContainerDb(RW, RisingWave)
+}
+
+Rel(M, F, "Управлять заказами", HTTP)
+Rel(M, YD, "Анализировать статистику", HTTP)
+Rel(YD, PG, "Получить данные", postgresql)
+
+Rel(O, F, "Управлять товарами и поставщиками", HTTP)
+Rel(C, F, "Смотреть товары и поставщиков", HTTP)
+
+Rel(YF, PG, "Сделать заказ", GraphQL)
+Rel(C, YF, "Сделать заказ", HTTP)
+Rel(C, YF, "Оплатить заказ", HTTP)
+
+Rel(TG, M, "Отправить уведомление", HTTP-хук)
+Rel(PG, TG, "Отправить уведомление", HTTP-хук)
+
+Rel(RW, PG, "Изменить статус оплаты", jdbc)
+Rel(K, RW, "Потребить событие оплаты", kafka)
+Rel(YF, K, "Оплатить заказ", kafka)
+Rel(F, PG, "Считать и менять данные", postgresql)
+
+Rel_Left(PG, US, "Отправить уведомление", HTTP-хук)
+Rel(US, C, "Отправить уведомление", SMTP)
+
+SHOW_LEGEND()
+
+@enduml
