@@ -1,0 +1,8 @@
+DO $$
+DECLARE
+    i INTEGER;
+BEGIN
+    FOR i IN 1..74 LOOP
+        EXECUTE format('ALTER TABLE application ADD COLUMN product_%s INTEGER;', i);
+    END LOOP;
+END $$;
