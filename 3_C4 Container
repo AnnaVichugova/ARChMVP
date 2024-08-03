@@ -42,4 +42,5 @@ Rel_Left(PG, US, "Отправить уведомление", HTTP-хук)
 Rel(US, C, "Отправить уведомление", SMTP)
 
 SHOW_LEGEND()
+
 @enduml
