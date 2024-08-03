@@ -1,0 +1,15 @@
+query ProductsAndProviders {
+  product {
+    id
+    name
+    price
+    provider
+    quantity
+    providerByProvider {
+      name
+      phone
+      email
+      address
+    }
+  }
+}
