@@ -2,47 +2,40 @@
 !include <C4/C4_Container>
 title Уровень контекста
 
-Person(User, "Пользователь", "Не аутентифицированный пользователь")
-Person(Manager, "Менеджер", "Менеджер интернет-магазина")
-Person(Operator, "Оператор", "Оператор склада")
-Person(Customer, "Покупатель", "Клиент магазина")
-Person(Employee, "Сотрудник", "Сотрудник интернет-магазина")
+Person(U, "Пользователь", "Не аутентифицированный пользователь")
+Person(M, "Менеджер", "Менеджер интернет-магазина")
+Person(O, "Оператор", "Оператор склада")
+Person(C, "Покупатель", "Клиент магазина")
+Person(E, "Сотрудник", "Сотрудник интернет-магазина")
 
 
-User <|- Customer
-Employee --|> User
-Operator --|> Employee 
-Manager --|> Employee 
+U <|- C
+E --|> U
+O --|> E
+M --|> E
 
-System(IShop, "I-Shop", "PG on Hasura\nFlask on Colab")
+System(IS, "I-Shop", "PG on Hasura\nFlask on Colab")
 
 System_Ext(YF, "Yandex Forms", " Клиент для отправки данных")
-System_Ext(Unisender, "Внешняя система email-уведомлений", "Unisender")
+System_Ext(US, "Внешняя система email-уведомлений", "Unisender")
 System_Ext(TG, "Внешняя система TG-уведомлений", "Telegram")
-System_Ext(Bank, "Внешний шлюз онлайн-оплаты", "Upstash + RisingWave")
+System_Ext(B, "Внешний шлюз онлайн-оплаты", "Upstash + RisingWave")
 System_Ext(YD, "Yandex DataLens", "BI-система")
 
-
-Rel(Employee, IShop, "Управлять заказами")
-Rel(Manager, YD, "Анализировать статистику")
-Rel(YD, IShop, "Получить данные")
-
-Rel(Operator, IShop, "Управлять товарами и поставщиками")
-
-Rel(User, IShop, "Смотреть товары и поставщиков")
-
-
-Rel(YF, IShop,"Сделать заказ")
-Rel(Customer, YF, "Сделать заказ")
-Rel(Customer, YF, "Оплатить заказ")
-
-Rel(TG, Employee, "Отправить уведомление")
-Rel(Unisender, Customer, "Отправить уведомление")
-Rel(IShop, Unisender, "Отправить уведомление")
-Rel(IShop, TG, "Отправить уведомление")
-
-Rel(YF, Bank, "Оплатить заказ")
-Rel(Bank, IShop, "Изменить статус оплаты")
+Rel(E, IS, "Управлять заказами")
+Rel(M, YD, "Анализировать статистику")
+Rel(YD, IS, "Получить данные")
+Rel(O, IS, "Управлять товарами и поставщиками")
+Rel(U, IS, "Смотреть товары и поставщиков")
+Rel(YF, IS,"Сделать заказ")
+Rel(C, YF, "Сделать заказ")
+Rel(C, YF, "Оплатить заказ")
+Rel(TG, E, "Отправить уведомление")
+Rel(US, C, "Отправить уведомление")
+Rel(IS, US, "Отправить уведомление")
+Rel(IS, TG, "Отправить уведомление")
+Rel(YF, B, "Оплатить заказ")
+Rel(B, IS, "Изменить статус оплаты")
 
 SHOW_LEGEND()
 @enduml
