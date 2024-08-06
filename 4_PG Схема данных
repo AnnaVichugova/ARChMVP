@@ -8,7 +8,7 @@ CREATE TABLE product(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL,
     provider INTEGER NOT NULL,
-    price FLOAT(53) NOT NULL,
+    price MONEY DEFAULT 0,
     quantity INTEGER NOT NULL
 );
 CREATE TABLE customer_status(
@@ -46,7 +46,7 @@ CREATE TABLE orders(
     id SERIAL NOT NULL PRIMARY KEY,
     customer INTEGER NOT NULL,
     status INTEGER NOT NULL,
-    ammount FLOAT(53) NOT NULL,
+    ammount MONEY DEFAULT 0,
     date DATE NOT NULL
 );
 CREATE TABLE customer(
