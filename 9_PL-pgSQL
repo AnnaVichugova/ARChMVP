@@ -1,9 +1,12 @@
 -- Функция обработки заявок на заказ и вставки данных в соответствующие таблицы базы данных
-CREATE OR REPLACE FUNCTION process_application() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.process_application()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
     customer_id INTEGER;
     order_id INTEGER; -- Объявляем переменную order_id
-    total_amount FLOAT := 0;
+    total_amount MONEY := 0;
     product_record RECORD;
     product_quantity INTEGER;
 BEGIN
@@ -55,7 +58,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$function$
 
 -- триггер, который будет вызывать эту функцию при вставке данных в таблицу application:
 CREATE OR REPLACE TRIGGER trg_process_application
