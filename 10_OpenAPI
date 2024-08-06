@@ -434,6 +434,29 @@ paths:
             schema:
               $ref: '#/components/schemas/Product'
         description: Измененные параметры товара    
+   delete:
+     tags:
+      - operator
+     summary: Удалить поставщика
+     operationId: deleteProduct
+     security:
+        - CookieAuth: []  
+     description: Удаление товар по его идентификатору
+     parameters:
+      - name: id
+        in: path
+        description: Идентификатор товара для удаления
+        required: true
+        schema:
+          type: integer
+        example: 1
+     responses:
+      '200':
+        description: товар успешно удален
+      '404':
+        description: товар не найден
+      '500':
+        description: внутренняя ошибка сервера         
   
  /provider/{id}:
     get:
