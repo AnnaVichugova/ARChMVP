@@ -56,8 +56,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 -- триггер, который будет вызывать эту функцию при вставке данных в таблицу application:
-CREATE TRIGGER trg_process_application
+CREATE OR REPLACE TRIGGER trg_process_application
 AFTER INSERT ON application
 FOR EACH ROW
 EXECUTE FUNCTION process_application();
