@@ -1,22 +1,26 @@
 -- Функция обработки обновления статуса заказа
-CREATE OR REPLACE FUNCTION update_order_status()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION public.update_order_status()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
     customer_email VARCHAR;
+    customer_name  VARCHAR;
 BEGIN
     -- Проверим, изменился ли статус на 5
     IF NEW.status = 5 THEN
         -- Получим email покупателя
         SELECT email INTO customer_email FROM customer WHERE id = NEW.customer;
-
+        SELECT name INTO customer_name FROM customer WHERE id = NEW.customer;
         -- Вставим запись в таблицу letter
         INSERT INTO letter (moment, email, mail) 
         VALUES (CURRENT_TIMESTAMP, customer_email, 
-        'Оплатите Ваш заказ № ' || NEW.id || ' до ' || TO_CHAR(NOW() + INTERVAL '3 days', 'YYYY-MM-DD HH24:MI:SS') || ' по ссылке');
+        'Здравствуйте, '|| customer_name ||'! Оплатите Ваш заказ № ' || NEW.id || ' до ' || TO_CHAR(NOW() + INTERVAL '3 days', 'YYYY-MM-DD HH24:MI:SS') || ' по <a href="https://forms.yandex.ru/u/66b1b9dd068ff0a5d6d7dae7">ссылке</a>');
     END IF;
     RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+END
+$function$
+
 
 -- триггер на таблицу orders
 CREATE OR REPLACE TRIGGER trg_update_order_status
