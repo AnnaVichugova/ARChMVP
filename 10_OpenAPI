@@ -1,0 +1,748 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/VICHIGOVAANNA/Internet-shop/2.0.2
+info:
+  description: Пример для реализации от 07 августа 2024 года интернет-магазин - демо-кейс Анны Вичуговой
+  version: 2.0.2
+  title: API интернет-магазина
+  contact: 
+    email: anna@mail.com
+
+tags:
+  - name: user
+    description: Пользователь (все категории пользователей)
+  - name: manager
+    description: Менеджер
+  - name: customer
+    description: Покупатель
+
+paths:
+ /registration:
+    get:
+      tags:
+       - user
+      description: Просмотр страницы регистрации пользователя
+      summary: Просмотр страницы регистрации пользователя в системе
+      responses:
+        '200':
+          description: Успешное отображение страницы с формой регистрации
+          content:
+            application/html:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: object
+                    description: Содержимое страницы для ввода логина и пароля
+
+        '404':
+          description: Страница не найдена
+        '503':
+          description: Сервер временно недоступен
+    post:
+      tags:
+        - user
+      summary: Регистрация нового пользователя
+      description: Регистрация нового пользователя с записью его в БД
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Логин пользователя
+                  example: anna@example.ru
+                password:
+                  type: string
+                  format: password
+                  description: Пароль пользователя
+                role:
+                  type: string
+                  enum:
+                   - manager
+                   - customer
+                   - operator
+                  description: Роль пользователя
+                  example: manager
+      responses:
+        '201':
+          description: Успешно зарегистрирован
+        '500':
+          description: Внутренняя ошибка сервера
+          
+ /login:
+    get:
+      tags:
+       - user
+      description: Просмотр страницы ввода логина и пароля (входа в систему)
+      summary: Просмотр страницы ввода логина и пароля (входа в систему)
+      responses:
+        '200':
+          description: Успешное отображение страницы с формой входа в систему 
+          content:
+            application/html:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: object
+                    description: Содержимое страницы для ввода логина и пароля
+
+        '404':
+          description: Страница не найдена
+        '503':
+          description: Сервер временно недоступен
+    post:
+      tags:
+      - user
+      summary: Вход пользователя в систему
+      description: Аутентификация пользователя с использованием куки-файла с JWT-токеном
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Логин пользователя
+                  example: anna@example.ru
+                password:
+                  type: string
+                  format: password
+                  description: Пароль пользователя
+                role:
+                  type: string
+                  enum:
+                   - manager
+                   - customer
+                   - operator
+                  description: Роль пользователя
+                  example: manager
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT токен в Cookie для дальнейшей аутентификации
+                    example:  token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjp7ImlkIjoxMDI2LCJsb2dpbiI6ImNqa0B5YW5kZXgucnUiLCJwYXNzd29yZCI6IjY4OTE3MDkyIiwicm9sZSI6Im1hbmFnZXIifSwicm9sZSI6Im1hbmFnZXIiLCJleHAiOjE3MDg0NDE3OTl9.0IyWJsnBdRC1WdZC_EEaa37jDxpvgbfnDbnweEAJkAI
+        '401':
+          description: Ошибка аутентификации, неверные учетные данные
+        '500':
+          description: Внутренняя ошибка сервера
+          
+ /analytics:
+    get:
+      tags:
+       - manager
+      summary: Анализировать статистику
+      operationId: getAnalytics
+      security:
+        - CookieAuth: []  
+      description: Открытие дэшборда в BI-системе
+      responses:
+        '200':
+          description: Успешное отображение дашборда BI-системы в новой вкладке
+          content:
+            application/html:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: object
+                    description: Содержимое страницы с аналитическим дашбордом в новой вкладке
+        '400':
+          description: Некорректный запрос
+        '500':
+          description: Ошибка сервера
+          
+ /product:
+    get:
+      tags:
+        - user
+      summary: Посмотреть каталог товаров
+      operationId: viewProductCatalog
+      description: Параметры фильтрации товаров в каталоге для поиска
+      parameters:
+        - in: query
+          name: search_product_name
+          description: название товара для поиска
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: search_product_min_price
+          description: минимальная цена товара для поиска
+          schema:
+            type: number
+            minimum: 0
+            maximum: 10005000.99
+        - in: query
+          name: search_product_max_price
+          description: максимальная цена товара для поиска
+          schema:
+            type: number
+            minimum: 0
+            maximum: 10005000.99
+        - in: query
+          name: search_product_min_quantity
+          description: минимальное количество товара на складе  для поиска
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10005000          
+        - in: query
+          name: search_product_max_quantity
+          description: максимальное количество товара на складе  для поиска
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10005000            
+      responses:
+        '200':
+          description: результаты поиска по запросу
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '400':
+          description: не верные параметры фильтрации
+          
+    post:
+      tags:
+        - operator
+      summary: 'Добавить товар'
+      operationId: addProduct
+      security:
+        - CookieAuth: []
+      description: Добавить новый товар в каталог
+      
+      responses:
+        '201':
+          description: товар добавлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  product:  
+                    $ref: '#/components/schemas/Product'
+        '400':
+          description: некорректный ввод
+        '409':
+          description: такой товар уже есть
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+        description: Новый товар для добавления в каталог
+
+    
+
+
+ /new_product:
+    get:
+      tags:
+        - operator
+      operationId: addNewProduct
+      description: Просмотр страницы добавления нового продукта
+      summary: Просмотр страницы  добавления нового продукта
+      responses:
+        '200':
+          description: Успешное отображение страницы с формой добавления нового товара
+          content:
+            application/html:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: object
+                    description: Содержимое страницы
+        '404':
+          description: Страница не найдена
+        '503':
+          description: Сервер временно недоступен
+
+ /provider:
+    get:
+      tags:
+        - user
+      summary: Посмотреть список поставщиков
+      operationId: viewProviderCatalog
+      description: Параметры фильтрации поставщиков в каталоге для поиска
+      parameters:
+        - in: query
+          name: search_provider_name
+          description: название поставщика для поиска
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: search_provider_phone
+          description: телефон поставщика для поиска
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: search_provider_email
+          description: email поставщика для поиска
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: search_provider_address
+          description: адрес поставщика для поиска
+          required: false
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: результаты поиска по запросу
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Provider'
+        '400':
+          description: не верные параметры фильтрации
+          
+    post:
+      tags:
+        - operator
+      summary: Добавить поставщика
+      operationId: addProvider
+      security:
+        - CookieAuth: []    
+      description: Добавление нового поставщика в каталог
+      responses:
+        '201':
+          description: поставщик добавлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  provider:  
+                    $ref: '#/components/schemas/Provider'
+        '400':
+          description: некорректный ввод
+        '409':
+          description: такой поставщик уже есть
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Provider'
+        description: Новый поставщик для добавления в каталог
+        
+ /new_provider:
+    get:
+      tags:
+        - operator
+      operationId: addNewProvider
+      description: Просмотр страницы добавления нового поставщика
+      summary: Просмотр страницы  добавления нового поставщика
+      responses:
+        '200':
+          description: Успешное отображение страницы с формой добавления нового поставщика
+          content:
+            application/html:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: object
+                    description: Содержимое страницы
+        '404':
+          description: Страница не найдена
+        '503':
+          description: Сервер временно недоступен
+
+ /product/{id}:
+   get:
+    tags:
+      - user
+    summary: Посмотреть товар
+    operationId: viewProduct
+    description: Просмотр данных о конкретном товаре по его идентификатору
+    parameters:
+      - in: path
+        name: id
+        description: идентификатор товара
+        required: true
+        schema:
+          type: integer
+          format: int64
+          example: 1
+    responses:
+      '200':
+        description: Товар найден
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      '404':
+        description: 'Товар не найден'
+
+   put:
+      tags:
+        - operator
+      summary: Изменить товар
+      operationId: updateProduct
+      security:
+        - CookieAuth: []    
+      description: Изменение параметров товара
+      parameters:
+        - name: id
+          in: path
+          description: ID товара, параметры которого нужно изменить
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: параметры товара изменены успешно
+        '400':
+          description: некорректный ввод
+        '404':
+          description: товар не найден
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+        description: Измененные параметры товара    
+  
+ /provider/{id}:
+    get:
+      tags:
+        - user
+      summary: Посмотреть поставщика
+      operationId: viewProvider
+      security:
+        - CookieAuth: []  
+      description: Просмотр информации о конкретном поставщике по его ID
+      parameters:
+        - in: path
+          name: id
+          description: Идентификатор поставщика
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Поставщик найден
+          content:
+           application/json:
+            schema:
+              $ref: '#/components/schemas/Provider'
+        '404':
+          description: Поставщик не найден
+    put:
+      tags:
+        - operator
+      summary: Изменить поставщика
+      operationId: updateProvider
+      security:
+        - CookieAuth: []    
+      description: Изменение поставщика по его идентификатору
+      parameters:
+        - name: id
+          in: path
+          description: ID поставщика, параметры которого нужно изменить
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: параметры поставщика изменены успешно
+        '400':
+          description: некорректный ввод
+        '404':
+          description: поставщик не найден
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Provider'
+        description: Данные поставщика
+
+    delete:
+     tags:
+      - operator
+     summary: Удалить поставщика
+     operationId: deleteProvider
+     security:
+        - CookieAuth: []  
+     description: Удаление поставщика по его идентификатору
+     parameters:
+      - name: id
+        in: path
+        description: Идентификатор поставщика для удаления
+        required: true
+        schema:
+          type: integer
+        example: 1
+     responses:
+      '200':
+        description: поставщик успешно удален
+      '404':
+        description: поставщик не найден
+      '500':
+        description: внутренняя ошибка сервера  
+
+ /order:
+    get:
+      tags:
+        - manager
+        - operator
+      summary: Посмотреть заказы
+      operationId: viewOrders
+      security:
+        - CookieAuth: []    
+      description: Параметры фильтрации заказов для поиска
+      parameters:
+        - in: query
+          name: search_order_id
+          description: номер заказа для поиска
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search_order_date
+          description: дата создания заказа
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: search_order_status
+          description: статус заказа
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+        - in: query
+          name: search_order_ammount_min
+          description: минимальная сумма заказа для поиска
+          schema:
+            type: number
+            minimum: 0
+            maximum: 10005000.99
+        - in: query
+          name: search_order_ammount_max
+          description: минимальная сумма заказа для поиска
+          schema:
+            type: number
+            minimum: 0
+            maximum: 10005000.99            
+      responses:
+        '200':
+          description: результаты поиска по запросу
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: не верные параметры фильтрации
+    post:
+      tags:
+       - manager
+       - operator
+      summary: Найти заказ клиента
+      operationId: findCustomerOrder
+      security:
+        - CookieAuth: []  
+      description: Поиск заказа клиента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                search_order_customer:
+                  type: string
+                  example: Иванов Иван Иваныч
+                  description: Имя клиента
+      responses:
+        '200':
+          description: Заказы клиента найдены
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: Некорректный запрос
+        '500':
+          description: Ошибка сервера
+
+
+ /order/{id}:
+    put:
+      tags:
+        - manager
+        - operator
+      summary: Изменить состояние заказа
+      security:
+        - CookieAuth: []       
+      operationId: changeOrderState
+      description: Подтвердить, отменить или изменить статус заказа
+      parameters:
+        - name: id
+          in: path
+          description: ID заказа, статус которого надо изменить
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Заказ успешно изменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Некорректный ввод
+        '404':
+          description: Заказ не найден
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/OrderState'
+              discriminator:
+                propertyName: operationType
+              description: Новый статус заказа
+
+
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - name
+        - provider
+        - price
+        - quantity
+      properties:
+        name:
+          type: string
+          example: 'яблоки'
+        provider:
+          type: integer
+          example: 10            
+        price:
+          type: number
+          example: 145.50
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 100500          
+          example: 10   
+          
+    Provider:
+      required:
+        - name
+        - phone
+        - email
+        - address
+      properties:
+        name:
+          type: string
+          example: ООО Ромашка
+        email:
+          type: string
+          example: 'email@com'
+        phone:
+          type: string
+          example: 7-495-123-45-67
+        address:
+          type: string
+          example: 'г. Москва, ул. Ленина, 123'
+   
+    OrderState:
+      required:
+        - status
+      properties:
+        state:
+          type: integer
+          minimum: 1
+          maximum: 10          
+          example: 3   
+          enum:
+            - 1 (новый)
+            - 2 (в работе)
+            - 3 (отменен клиентом)
+            - 4 (отменен магазином)
+            - 5 (в оплате)
+            - 6 (оплачен)
+            - 7 (в сборке)
+            - 8 (собран)
+            - 9 (в доставке)
+            - 10 (отменен магазином)            
+          
+    Order:
+      required:
+        - id
+        - customer
+        - status
+        - date
+        - ammount
+      properties:
+        id:
+          type: integer
+          example: 1        
+        customer:
+          type: integer
+          example: 1  
+        date:
+          type: string
+          format: date
+          example: 2023-09-30
+        status:
+          type: integer
+          minimum: 1
+          maximum: 10          
+          example: 5  
+        ammount:
+          type: number
+          example: 145.50
+
+  securitySchemes:
+    CookieAuth:            
+      type: apiKey
+      in: cookie
+      name: AuthCookie
