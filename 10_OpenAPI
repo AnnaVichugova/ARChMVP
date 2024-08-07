@@ -17,6 +17,8 @@ tags:
     description: Менеджер
   - name: customer
     description: Покупатель
+  - name: operator
+    description: Оператор склада    
 
 paths:
  /registration:
@@ -35,7 +37,7 @@ paths:
                 properties:
                   page:
                     type: object
-                    description: Содержимое страницы для ввода логина и пароля
+                    description: Содержимое страницы с формой регистрации
 
         '404':
           description: Страница не найдена
