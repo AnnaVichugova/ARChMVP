@@ -870,3 +870,4 @@ components:
       type: apiKey
       in: cookie
       name: AuthCookie
+      description: JWT токен в Cookie для дальнейшей аутентификации
