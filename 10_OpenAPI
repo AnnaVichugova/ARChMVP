@@ -168,6 +168,66 @@ paths:
           description: Некорректный запрос
         '500':
           description: Ошибка сервера
+ 
+ /customer:
+    get:
+      tags:
+        - manager
+      summary: Посмотреть клиентов
+      operationId: viewCustomers
+      security:
+        - CookieAuth: []    
+      description: Параметры фильтрации клиентов для поиска
+      parameters:
+        - in: query
+          name: search_status
+          description: номер статуса клиента для поиска
+          required: false
+          schema:
+            $ref: '#/components/schemas/CustomerStatus'       
+      responses:
+        '200':
+          description: результаты поиска по запросу
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'    
+        '400':
+          description: не верные параметры фильтрации
+    post:
+      tags:
+       - manager
+      summary: Найти клиента
+      operationId: findCustomer
+      security:
+        - CookieAuth: []  
+      description: Поиск клиента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                search_customer:
+                  type: string
+                  example: Иванов Иван Иваныч
+                  description: Имя клиента
+      responses:
+        '200':
+          description: Клиенты найдены
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'   
+        '400':
+          description: Некорректный запрос
+        '500':
+          description: Ошибка сервера 
           
  /product:
     get:
@@ -667,7 +727,7 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/schemas/OrderState'
+                - $ref: '#/components/schemas/OrderStatus'
               discriminator:
                 propertyName: operationType
               description: Новый статус заказа
@@ -718,7 +778,7 @@ components:
           type: string
           example: 'г. Москва, ул. Ленина, 123'
    
-    OrderState:
+    OrderStatus:
       required:
         - status
       properties:
@@ -763,6 +823,47 @@ components:
         ammount:
           type: number
           example: 145.50
+
+    CustomerStatus:
+      required:
+        - status
+      properties:
+        state:
+          type: integer
+          minimum: 1
+          maximum: 6          
+          example: 3   
+          enum:
+            - 1 (новый)
+            - 2 (постоянный)
+            - 3 (серебрянный)
+            - 4 (золото)
+            - 5 (премиум)
+            - 6 (заблокирован)
+
+    Customer:
+      required:
+        - name
+        - phone
+        - email
+        - status
+      properties:
+        name:
+          type: string
+          example: ООО Ромашка
+        email:
+          type: string
+          example: 'email@com'
+        phone:
+          type: string
+          example: 7-495-123-45-67
+        status:
+            oneOf:
+              - $ref: '#/components/schemas/CustomerStatus'
+            discriminator:
+              propertyName: operationType
+            description: новый статус клиента
+          
 
   securitySchemes:
     CookieAuth:            
