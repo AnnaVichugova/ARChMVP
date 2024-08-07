@@ -405,7 +405,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Product'
       '404':
-        description: 'Товар не найден'
+       description: 'Товар не найден'
 
    put:
       tags:
@@ -724,13 +724,11 @@ components:
       properties:
         state:
           type: integer
-          minimum: 1
+          minimum: 2
           maximum: 10          
           example: 3   
           enum:
-            - 1 (новый)
             - 2 (в работе)
-            - 3 (отменен клиентом)
             - 4 (отменен магазином)
             - 5 (в оплате)
             - 6 (оплачен)
