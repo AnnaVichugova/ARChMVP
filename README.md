@@ -12,6 +12,7 @@
   <li>разработка спецификации OpenAPI в SwaggerHub</li>
   <li>хранение данных в реляционной БД PostgreSQL</li>
   <li>Hasura сервер СУБД с поддержкой GrapQL</li>
+  <li>Frontend отправки данных в БД на формах Yandex.Forms</li>  
   <li>Flask для разработки REST-приложения на Python с утилитой тунелирования ngrok в Google Colab</li>
   <li>Apache Kafka на платформе Upstash</li>
   <li>RisingWave - потоковая реляционная база данных на коннекторах и SQL</li>
