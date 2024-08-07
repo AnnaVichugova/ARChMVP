@@ -828,7 +828,7 @@ components:
       required:
         - status
       properties:
-        state:
+        status:
           type: integer
           minimum: 1
           maximum: 6          
