@@ -8,9 +8,9 @@
 </ul>
 <strong>Стек технологий:</strong>
 <ul>
-  <li>проектирование UML Use Case и С4 в PlantUML</li>
-  <li>разработка спецификации OpenAPI в SwaggerHub</li>
-  <li>хранение данных в реляционной БД PostgreSQL</li>
+  <li>PlantUML для проектирования диаграмм UML Use Case и С4</li>
+  <li>SwaggerHub для разработки спецификации OpenAPI</li>
+  <li>Реляционная БД PostgreSQL для хранения данных</li>
   <li>Hasura сервер СУБД с поддержкой GrapQL</li>
   <li>Frontend отправки данных в БД на формах Yandex.Forms</li>  
   <li>Flask для разработки REST-приложения на Python с утилитой тунелирования ngrok в Google Colab</li>
@@ -18,5 +18,6 @@
   <li>RisingWave - потоковая реляционная база данных на коннекторах и SQL</li>
   <li>Система маркетинговых рассылок Unisender</li>
   <li>Мессенджер Telegram</li>
+  <li>Redis - NoSQL-БД типа ключ/значение</li>
   <li>Облачная BI-система Yandex.Datalens</li>  
 </ul>
