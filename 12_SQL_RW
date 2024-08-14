@@ -1,0 +1,113 @@
+--SQL-запросы в потоковой реляционной БД RisingWave
+
+--источник данных, подключение к 1-му топику Kafka с событиями оплаты
+CREATE SOURCE IF NOT EXISTS kafka_pay_orders (
+    order_id INT,
+    ammount NUMERIC
+) WITH (
+    connector='kafka',
+    topic='your-topic-1',
+    properties.bootstrap.server='your-host:9092',    
+    scan.startup.mode='latest',
+    properties.sasl.mechanism='SCRAM-SHA-256',
+    properties.security.protocol='SASL_SSL',
+    properties.sasl.username='your-username',
+    properties.sasl.password='your-password'
+) FORMAT PLAIN ENCODE JSON;
+
+--источник данных, подключение ко 2-му топику Kafka с событиями подтверждения оплаты
+CREATE SOURCE IF NOT EXISTS kafka_pay_codes (
+    order_id INT,
+    code VARCHAR
+) WITH (
+    connector='kafka',
+    topic='your-topic-2',
+    properties.bootstrap.server='your-host:9092',    
+    scan.startup.mode='latest',
+    properties.sasl.mechanism='SCRAM-SHA-256',
+    properties.security.protocol='SASL_SSL',
+    properties.sasl.username='your-username',
+    properties.sasl.password='your-password'
+) FORMAT PLAIN ENCODE JSON;
+
+--материализованное представление суммы по событиям оплаты, поступившим по одному заказу, в 1-ый топик Kafka
+CREATE MATERIALIZED VIEW IF NOT EXISTS paystat_mv AS
+SELECT order_id, SUM(ammount) AS summa FROM kafka_pay_orders
+GROUP BY order_id
+
+--подключение к PostgreSQL для взаимодействия с таблицей заказов orders, заранее в NeonDB для PostgreSQL установить логическую репликацию на свой проект
+CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY,
+    customer INTEGER,
+    status INTEGER,
+    ammount NUMERIC,
+    date DATE
+) WITH (
+    connector = 'postgres-cdc',
+    hostname = 'your-host.neon.tech',
+    port = '5432',
+    username = 'username',
+    password = 'password',
+    database.name = 'your-database',
+    schema.name = 'public',
+    table.name = 'orders'
+);
+
+--материализованное представление для обновления статуса заказов в PostgreSQL на В ОПЛАТЕ, чтобы сгенерилось письмо с кодом
+CREATE MATERIALIZED VIEW IF NOT EXISTS orders_on_pay_mv AS
+SELECT orders.id AS id, orders.customer AS customer, 5 AS status, orders.ammount AS ammount, orders.date AS date FROM paystat_mv
+JOIN orders ON orders.id=paystat_mv.order_id
+WHERE (paystat_mv.summa-orders.ammount)=0
+
+-- приемник данных в PostgreSQL для заказов со статусом В ОПЛАТЕ
+CREATE SINK IF NOT EXISTS ishop_pg_sink_orders_on_pay_mv FROM orders_on_pay_mv WITH (
+    connector = 'jdbc',
+    jdbc.url = 'jdbc:postgresql://your-host.neon.tech/your-database?user=username&password=password',
+    table.name = 'orders',
+    type = 'upsert',
+    primary_key = 'id'
+);
+
+-- материализованное представление генерации промокодов по ИД заказа
+CREATE MATERIALIZED VIEW IF NOT EXISTS pay_codes_mv AS
+SELECT 
+    order_id,
+    CONCAT(order_id+ascii((order_id+1)::varchar)) AS code
+FROM kafka_pay_orders;
+
+--приемник данных в Redis для отправки сгенерированного промокода
+CREATE SINK IF NOT EXISTS redis_sink
+FROM pay_codes_mv WITH (
+    connector = 'redis',
+    primary_key = 'order_id',
+    redis.url= 'redis://username:password@host.upstash.io:38947',
+	redis.ttl = 300
+) FORMAT PLAIN ENCODE TEMPLATE (
+    force_append_only='true',
+    key_format = '{order_id}',
+    value_format = '{code}'
+);
+
+-- материализованное представление событий подтверждения оплаты (ввода промокодов) из 2-го топика Kafka
+CREATE MATERIALIZED VIEW IF NOT EXISTS codes_mv AS
+SELECT 
+    order_id,
+	code
+FROM kafka_pay_codes;	
+
+-- материализованное представление для обновления статуса заказов в PostgreSQL на ОПЛАЧЕН, чтобы сгенерилось письмо с кодом
+CREATE MATERIALIZED VIEW IF NOT EXISTS payed_orders_mv AS
+SELECT orders.id AS id, orders.customer AS customer, 6 AS status, orders.ammount AS ammount, orders.date AS date FROM paystat_mv
+JOIN orders ON orders.id=paystat_mv.order_id
+JOIN pay_codes_mv ON pay_codes_mv.order_id=orders.id
+JOIN codes_mv ON codes_mv.order_id=pay_codes_mv.order_id
+WHERE codes_mv.code=pay_codes_mv.code;
+
+-- приемник данных в PostgreSQL для заказов со статусом ОПЛАЧЕН
+CREATE SINK IF NOT EXISTS ishop_pg_sink_payed_orders FROM payed_orders_mv WITH (
+    connector = 'jdbc',
+    jdbc.url = 'jdbc:postgresql://your-host.neon.tech/your-database?user=username&password=password',
+    table.name = 'orders',
+    type = 'upsert',
+    primary_key = 'id'
+);
