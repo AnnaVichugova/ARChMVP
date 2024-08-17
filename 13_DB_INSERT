@@ -1,0 +1,203 @@
+#############################ячейка №1 в Google Colab - установка библиотек и импорт модулей########################
+
+# Установка библиотеки Faker для генерации фейковых данных
+!pip install Faker
+
+# Импорт модулей
+import random  # Модуль для генерации случайных чисел
+import pandas as pd  # Модуль для работы с данными в формате таблиц
+import datetime  # Модуль для работы с датами и временем
+import json  # Модуль для работы с JSON-данными
+import numpy as np  # Модуль для работы с массивами и математическими функциями
+from faker import Faker  # Импорт класса Faker из библиотеки faker для генерации фейковых данных
+from faker.providers.address.ru_RU import Provider as AddressProvider  # Импорт провайдера адресов на русском языке
+from faker.providers.person.ru_RU import Provider as PersonProvider  # Импорт провайдера персональных данных на русском языке
+from faker.providers.credit_card import Provider as CreditCardProvider  # Импорт провайдера данных по кредитным картам
+from google.colab import files  # Модуль для работы с файлами в Google Colab
+from random import randrange  # Импорт функции randrange для генерации случайных чисел из модуля random
+from datetime import datetime, timedelta  # Импорт классов datetime и timedelta для работы с датами и временем
+
+#############################ячейка №2 в Google Colab - пример генерации случайных значений в таблицу customer########################
+# клиенты
+# задаем количество записей
+k = 3000
+
+# Создание объекта Faker с локализацией для России
+fake = Faker('ru_RU')
+fake.add_provider(Provider)
+
+# задаем названиие таблицы
+table_name = 'customer'
+
+# задаем столбцы таблицы
+column_names = ('name', 'phone', 'status', 'email')
+
+# генерация и запись DML-скрипта в файл
+filename = f'{table_name}.sql' # формируем название выходного файла
+with open(filename, 'w') as f: #открытие файла для записи
+    # формируем строку с названиями столбцов
+    columns_str = ', '.join(f'{column}' for column in column_names)
+
+    begin_str=f'BEGIN; \n INSERT INTO  {table_name} ({columns_str}) VALUES \n'
+    end_str=f'COMMIT; \n'
+    f.write(begin_str)
+    for i in range(k):
+        # генерируем значения для каждого столбца
+        #для строковых значений обязательно f"'{}'"
+        name=f"'{fake.name()}'"
+        phone=f"'{fake.phone_number()}'"
+        status=random.randint(1, 6)
+        email=f"'{ fake.unique.free_email()}'"
+        
+        # формируем список со значениями
+        values = [name, phone, status, email]
+        
+        # формируем строку со значениями
+        values_str = ', '.join(str(value) for value in values)
+
+        # формируем и записываем DML-запрос в файл
+        # добавляем точку с запятой для последней строки, иначе запятую
+        if i == k - 1:
+            insert_values = f'({values_str});\n'
+        else:
+            insert_values = f'({values_str}),\n'
+        
+        # вывод на консоль - для проверки и отладки
+        print(insert_values)
+        
+        # запись в файл
+        f.write(insert_values)
+    
+    f.write(end_str)
+    f.close() #закрытие файла
+
+# Скачиваем файл на локальную машину
+files.download(filename)
+
+#############################ячейка №2 в Google Colab - пример генерации случайных значений в таблицу orders########################
+#заказы - таблица orders
+# задаем количество записей
+k = 7000
+
+#задаем крайние суммы платежей
+min_sum=1000
+max_sum=90000
+
+#задаем стартовую и конечную даты
+start_date = pd.Timestamp(year=2020, month=1, day=1)
+end_date = pd.Timestamp.now()
+
+
+# Функция для генерации случайной даты в заданном диапазоне - она принимает две даты в виде pd.Timestamp (начальную и конечную) и возвращает случайную дату между этими двумя датами
+def random_date(start_date, end_date):
+    delta = (end_date - start_date).days
+    random_days = np.random.randint(0, delta + 1)
+    return (start_date + timedelta(days=random_days)).date()
+
+# задаем названиие таблицы
+table_name = 'orders'
+
+# задаем столбцы таблицы
+column_names = ('customer', 'status', 'date','ammount')
+
+#явно задаем набор статусов заказов, чтобы не срабатывал триггер на таблицу, если он установлен. 
+#Например, у меня установлен тригер на отправку письма через Unisender, если статус заказа = 8 или = 5 или = 6. 
+#Чтобы Unisender не заблокировал по массовой отправке, надо или отключать триггер или делать так 
+statuses=[1, 2, 3, 4, 7, 9, 10]
+
+# генерация и запись DML-скрипта в файл
+filename = f'{table_name}.sql' # формируем название выходного файла
+with open(filename, 'w') as f: #открытие файла для записи
+    # формируем строку с названиями столбцов
+    columns_str = ', '.join(f'{column}' for column in column_names)
+
+    begin_str=f'BEGIN; INSERT INTO  {table_name} ({columns_str}) VALUES \n'
+    end_str=f'COMMIT; \n'
+    f.write(begin_str)
+    
+    for i in range(k):
+        # генерируем значения для каждого столбца
+        #для строковых значений обязательно f"'{}'"
+        #для целочисленных значений используем fake.random_int(min=1, max=4), в скобках указываем диапазон от мин до макс
+        customer=random.randint(1820, 4819) #диапазон из таблицы клиентов
+        status=random.choice(statuses)
+        date=f"'{random_date(start_date, end_date)}'"
+        ammount=round(random.randint(min_sum, max_sum) * 0.1 + min_sum, 2)
+        
+        # формируем список со значениями
+        values = [customer, status, date, ammount]
+        # формируем строку со значениями
+        values_str = ', '.join(str(value) for value in values)
+
+        # формируем и записываем DML-запрос в файл
+        # добавляем точку с запятой для последней строки, иначе запятую
+        if i == k - 1:
+            insert_values = f'({values_str});\n'
+        else:
+            insert_values = f'({values_str}),\n'
+        
+        # вывод на консоль - для проверки и отладки
+        print(insert_values)
+        
+        # запись в файл
+        f.write(insert_values)
+    
+    f.write(end_str)
+    f.close() #закрытие файла
+
+# Скачиваем файл на локальную машину
+files.download(filename)
+
+#############################ячейка №3 в Google Colab - пример генерации случайных значений в таблицу orders########################
+
+#товары в заказе - таблица order_product
+# задаем количество записей
+k = 1000
+
+# задаем названиие таблицы
+table_name = 'order_product'
+
+# задаем столбцы таблицы
+column_names = ('order_id', 'product', 'quantity')
+
+# генерация и запись DML-скрипта в файл
+filename = f'{table_name}.sql' # формируем название выходного файла
+with open(filename, 'w') as f: #открытие файла для записи
+    # формируем строку с названиями столбцов
+    columns_str = ', '.join(f'{column}' for column in column_names)
+
+    begin_str=f'BEGIN; INSERT INTO  {table_name} ({columns_str}) VALUES \n'
+    end_str=f'COMMIT; \n'
+    f.write(begin_str)
+    
+    for i in range(k):
+        # генерируем значения для каждого столбца
+        #для строковых значений обязательно f"'{}'"
+        #для целочисленных значений используем fake.random_int(min=1, max=4), в скобках указываем диапазон от мин до макс
+        order_id=random.randint(53, 7000) #диапазон из таблицы заказов
+        product=random.randint(1, 10) #диапазон из таблицы товаров
+        quantity=random.randint(1, 10) #диапазон из количества товаров
+        
+        # формируем список со значениями
+        values = [order_id, product, quantity]
+        # формируем строку со значениями
+        values_str = ', '.join(str(value) for value in values)
+
+        # формируем и записываем DML-запрос в файл
+        # добавляем точку с запятой для последней строки, иначе запятую
+        if i == k - 1:
+            insert_values = f'({values_str});\n'
+        else:
+            insert_values = f'({values_str}),\n'
+        
+        # вывод на консоль - для проверки и отладки
+        print(insert_values)
+        
+        # запись в файл
+        f.write(insert_values)
+    
+    f.write(end_str)
+    f.close() #закрытие файла
+
+# Скачиваем файл на локальную машину
+files.download(filename)
