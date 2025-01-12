@@ -14,10 +14,9 @@
   <li>Hasura сервер СУБД с поддержкой GrapQL</li>
   <li>Frontend отправки данных в БД на формах Yandex.Forms</li>  
   <li>Flask для разработки REST-приложения на Python с утилитой тунелирования ngrok в Google Colab</li>
-  <li>Apache Kafka на платформе Upstash</li>
-  <li>RisingWave - потоковая реляционная база данных на коннекторах и SQL</li>
+  <li>RabbitMQ на платформе CloudAMQP</li>
   <li>Система маркетинговых рассылок Unisender</li>
   <li>Мессенджер Telegram</li>
-  <li>Redis - NoSQL-БД типа ключ/значение</li>
+  <li>Redis - NoSQL-БД типа ключ/значение на платформе Upstash</li>
   <li>Облачная BI-система Yandex.Datalens</li>  
 </ul>
