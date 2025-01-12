@@ -3,7 +3,7 @@
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
 title Уровень контейнеров
-skinparam linetype ortho
+/' skinparam linetype ortho  для прямоугольных связей можно включить '/
 
 Person(M, "Менеджер", "Менеджер интернет-магазина")
 Person(O, "Оператор", "Оператор склада")
