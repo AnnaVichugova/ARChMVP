@@ -1,80 +1,108 @@
-CREATE TABLE order_product(
+create schema ishop;
+
+CREATE TABLE ishop.application(
+    id SERIAL NOT NULL PRIMARY KEY,
+	moment TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+	name VARCHAR NOT NULL,
+    phone VARCHAR NOT NULL,
+    email VARCHAR NOT NULL
+);
+
+CREATE TABLE ishop.order_product(
     id SERIAL NOT NULL PRIMARY KEY,
     order_id INTEGER NOT NULL,
     product INTEGER NOT NULL,
     quantity INTEGER NOT NULL
 );
-CREATE TABLE product(
+CREATE TABLE ishop.product(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL,
     provider INTEGER NOT NULL,
-    price MONEY DEFAULT 0,
+    price NUMERIC NOT NULL,
     quantity INTEGER NOT NULL
 );
-CREATE TABLE customer_status(
+CREATE TABLE ishop.customer_status(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL
 );
-CREATE TABLE jwts(
+CREATE TABLE ishop.jwts(
     id SERIAL NOT NULL PRIMARY KEY,
     moment TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     token TEXT NOT NULL,
     sysuser INTEGER NOT NULL
 );
-CREATE TABLE users(
+CREATE TABLE ishop.users(
     id SERIAL NOT NULL PRIMARY KEY,
     login VARCHAR NOT NULL UNIQUE,
     password VARCHAR NOT NULL,
     role INTEGER NOT NULL
 );
-CREATE TABLE order_status(
+CREATE TABLE ishop.order_status(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL
 );
-CREATE TABLE roles(
+CREATE TABLE ishop.roles(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL
 );
-CREATE TABLE provider(
+CREATE TABLE ishop.provider(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL,
     phone VARCHAR NOT NULL,
     email VARCHAR NOT NULL,
     address VARCHAR NOT NULL
 );
-CREATE TABLE orders(
+CREATE TABLE ishop.orders(
     id SERIAL NOT NULL PRIMARY KEY,
     customer INTEGER NOT NULL,
     status INTEGER NOT NULL,
-    ammount MONEY DEFAULT 0,
+    ammount NUMERIC NOT NULL,
     date DATE NOT NULL
 );
-CREATE TABLE customer(
+CREATE TABLE ishop.customer(
     id SERIAL NOT NULL PRIMARY KEY,
     name VARCHAR NOT NULL,
 	email VARCHAR NOT NULL UNIQUE,
     phone VARCHAR NOT NULL,
     status INTEGER NOT NULL
 );
-CREATE TABLE letter(
+CREATE TABLE ishop.letter(
     id SERIAL NOT NULL PRIMARY KEY,
     moment TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     email VARCHAR NOT NULL,
     mail TEXT NOT NULL
 );
+
+
+CREATE TABLE ishop.payment(
+    id SERIAL NOT NULL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    ammount NUMERIC NOT NULL,
+	moment TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    status INTEGER NOT NULL
+);
+CREATE TABLE ishop.payment_status(
+    id SERIAL NOT NULL PRIMARY KEY,
+    name VARCHAR NOT NULL
+);
 ALTER TABLE
-    product ADD CONSTRAINT product_provider_foreign FOREIGN KEY(provider) REFERENCES provider(id);
+    ishop.payment ADD CONSTRAINT payment_status_foreign FOREIGN KEY(status) REFERENCES ishop.payment_status(id);
 ALTER TABLE
-    order_product ADD CONSTRAINT order_product_order_id_foreign FOREIGN KEY(order_id) REFERENCES orders(id);
+    ishop.payment ADD CONSTRAINT payment_order_id_foreign FOREIGN KEY(order_id) REFERENCES ishop.orders(id);
+
 ALTER TABLE
-    order_product ADD CONSTRAINT order_product_product_foreign FOREIGN KEY(product) REFERENCES product(id);
+    ishop.product ADD CONSTRAINT product_provider_foreign FOREIGN KEY(provider) REFERENCES ishop.provider(id);
 ALTER TABLE
-    customer ADD CONSTRAINT customer_status_foreign FOREIGN KEY(status) REFERENCES customer_status(id);
+   ishop. order_product ADD CONSTRAINT order_product_order_id_foreign FOREIGN KEY(order_id) REFERENCES ishop.orders(id);
 ALTER TABLE
-    users ADD CONSTRAINT users_role_foreign FOREIGN KEY(role) REFERENCES roles(id);
+    ishop.order_product ADD CONSTRAINT order_product_product_foreign FOREIGN KEY(product) REFERENCES ishop.product(id);
 ALTER TABLE
-    orders ADD CONSTRAINT orders_status_foreign FOREIGN KEY(status) REFERENCES order_status(id);
+    ishop.customer ADD CONSTRAINT customer_status_foreign FOREIGN KEY(status) REFERENCES ishop.customer_status(id);
 ALTER TABLE
-    orders ADD CONSTRAINT orders_customer_foreign FOREIGN KEY(customer) REFERENCES customer(id);
+    ishop.users ADD CONSTRAINT users_role_foreign FOREIGN KEY(role) REFERENCES ishop.roles(id);
 ALTER TABLE
-    jwts ADD CONSTRAINT jwts_sysuser_foreign FOREIGN KEY(sysuser) REFERENCES users(id);
+    ishop.orders ADD CONSTRAINT orders_status_foreign FOREIGN KEY(status) REFERENCES ishop.order_status(id);
+ALTER TABLE
+   ishop. orders ADD CONSTRAINT orders_customer_foreign FOREIGN KEY(customer) REFERENCES ishop.customer(id);
+ALTER TABLE
+    ishop.jwts ADD CONSTRAINT jwts_sysuser_foreign FOREIGN KEY(sysuser) REFERENCES ishop.users(id);
