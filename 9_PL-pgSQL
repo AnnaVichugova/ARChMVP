@@ -1,26 +1,26 @@
 -- Функция обработки заявок на заказ и вставки данных в соответствующие таблицы базы данных
-CREATE OR REPLACE FUNCTION public.process_application()
+CREATE OR REPLACE FUNCTION ishop.process_application()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
 DECLARE
     customer_id INTEGER;
     order_id INTEGER; -- Объявляем переменную order_id
-    total_amount MONEY := 0;
+    total_amount FLOAT := 0;
     product_record RECORD;
     product_quantity INTEGER;
 BEGIN
     -- Проверяем, существует ли уже клиент с данным email
-    SELECT id INTO customer_id FROM customer WHERE email = NEW.email;
+    SELECT id INTO customer_id FROM ishop.customer WHERE email = NEW.email;
 
     IF customer_id IS NULL THEN
         -- Вставляем нового клиента
-        INSERT INTO customer (name, email, phone, status)
+        INSERT INTO ishop.customer (name, email, phone, status)
         VALUES (NEW.name, NEW.email, NEW.phone, 1)
         RETURNING id INTO customer_id;
     ELSE
         -- Обновляем существующего клиента
-        UPDATE customer
+        UPDATE ishop.customer
         SET name = NEW.name,
             phone = NEW.phone,
             status = LEAST(status + 1, 5)
@@ -29,21 +29,21 @@ BEGIN
     END IF;
 
     -- Создаем новый заказ
-    INSERT INTO orders (customer, status, ammount, date)
+    INSERT INTO ishop.orders (customer, status, ammount, date)
     VALUES (customer_id, 1, 0, CURRENT_DATE)
     RETURNING id INTO order_id;
 
     -- Обрабатываем товары в заявке
     FOR i IN 1..74 LOOP
-        EXECUTE format('SELECT product_%s FROM application WHERE id = $1', i)
+        EXECUTE format('SELECT product_%s FROM ishop.application WHERE id = $1', i)
         INTO product_quantity
         USING NEW.id;
 
         IF product_quantity IS NOT NULL AND product_quantity > 0 THEN
-            SELECT * INTO product_record FROM product WHERE id = i;
+            SELECT * INTO product_record FROM ishop.product WHERE id = i;
             
             -- Вставляем запись в order_product
-            INSERT INTO order_product (order_id, product, quantity)
+            INSERT INTO ishop.order_product (order_id, product, quantity)
             VALUES (order_id, i, product_quantity);
 
             -- Обновляем общую сумму заказа
@@ -52,7 +52,7 @@ BEGIN
     END LOOP;
 
     -- Обновляем сумму заказа в таблице orders
-    UPDATE orders
+    UPDATE ishop.orders
     SET ammount = total_amount
     WHERE id = order_id;
 
@@ -60,8 +60,9 @@ BEGIN
 END;
 $function$
 
+
 -- триггер, который будет вызывать эту функцию при вставке данных в таблицу application:
 CREATE OR REPLACE TRIGGER trg_process_application
 AFTER INSERT ON application
 FOR EACH ROW
-EXECUTE FUNCTION process_application();
+EXECUTE FUNCTION ishop.process_application();
