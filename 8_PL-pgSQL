@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.update_order_status()
+CREATE OR REPLACE FUNCTION ishop.update_order_status()
  RETURNS trigger
  LANGUAGE plpgsql
 AS $function$
@@ -6,37 +6,45 @@ DECLARE
     customer_email VARCHAR;
     customer_name  VARCHAR;
 BEGIN
-        -- Получим email покупателя
-        SELECT email INTO customer_email FROM customer WHERE id = NEW.customer;
-        SELECT name INTO customer_name FROM customer WHERE id = NEW.customer;
-    -- Проверим, изменился ли статус на 8 (собран)    
-    IF NEW.status = 8 THEN
-        -- Вставим запись в таблицу letter
-        INSERT INTO letter (moment, email, mail) 
-        VALUES (CURRENT_TIMESTAMP, customer_email, 
-        'Здравствуйте, '|| customer_name ||'! Ваш заказ № ' || NEW.id || ' собран. Чтобы мы его передали в доставку, оплатите за него сумму '|| NEW.ammount ||' до ' || TO_CHAR(NOW() + INTERVAL '3 days', 'YYYY-MM-DD HH24:MI:SS') || ' по <a href="https://forms.yandex.ru/u/66b1b9dd068ff0a5d6d7dae7">ссылке</a>');
-    END IF;
     -- Проверим, изменился ли статус на 5 (в оплате)
     IF NEW.status = 5 THEN
+        -- Получим email покупателя
+        SELECT email INTO customer_email FROM ishop.customer WHERE id = NEW.customer;
+        SELECT name INTO customer_name FROM ishop.customer WHERE id = NEW.customer;
         -- Вставим запись в таблицу letter
-        INSERT INTO letter (moment, email, mail) 
+        INSERT INTO ishop.letter (moment, email, mail) 
         VALUES (CURRENT_TIMESTAMP, customer_email, 
-        'Здравствуйте, '|| customer_name ||'! Подтвердите оплату заказа № ' || NEW.id || ' на сумму '|| NEW.ammount ||' Введите код подтверждения в форме по ссылке <a href="https://forms.yandex.ru/u/66bcba4a5d2a06138d264ffe">ссылке</a>. Код подтверждения действителен 5 минут до ' || TO_CHAR(NOW() + INTERVAL '5 minutes', 'YYYY-MM-DD HH24:MI:SS') || ' по <a href="https://us1-guiding-pug-38947.upstash.io/get/' || NEW.id || '?_token=ваш_токен_Redis">ссылке</a>');
+        --'Здравствуйте, '|| customer_name ||'! Оплатите Ваш заказ № ' || NEW.id || ' до ' || TO_CHAR(NOW() + INTERVAL '3 days', 'YYYY-MM-DD HH24:MI:SS') || ' по <a href="https://forms.yandex.ru/u/66b1b9dd068ff0a5d6d7dae7">ссылке</a>');
+        'Здравствуйте, '|| customer_name ||'! Подтвердите оплату заказа № ' || NEW.id || ' на сумму '|| NEW.ammount ||' Введите код подтверждения в форме по ссылке <a href="https://forms.yandex.ru/u/66bcba4a5d2a06138d264ffe">ссылке</a>. Код подтверждения действителен 5 минут до ' || TO_CHAR(NOW() + INTERVAL '5 minutes', 'YYYY-MM-DD HH24:MI:SS') || ' по <a href="https://us1-guiding-pug-38947.upstash.io/get/' || NEW.id || '?_token=AZgjACQgOTZiZTliOTEtMGI5My00ZWM2LTkyYzYtMzY1NGY2NTk2MDA2NjQ1OTVmY2ZkNjQyNDA1Y2FhMTJmN2FjZDhjNzJjYTE=">ссылке</a>');
     END IF;
     -- Проверим, изменился ли статус на 6 (оплачен)
     IF NEW.status = 6 THEN
+        -- Получим email покупателя
+        SELECT email INTO customer_email FROM ishop.customer WHERE id = NEW.customer;
+        SELECT name INTO customer_name FROM ishop.customer WHERE id = NEW.customer;    
         -- Вставим запись в таблицу letter
-        INSERT INTO letter (moment, email, mail) 
+        INSERT INTO ishop.letter (moment, email, mail) 
         VALUES (CURRENT_TIMESTAMP, customer_email, 
         'Здравствуйте, '|| customer_name ||'! Ваш заказ № ' || NEW.id || ' на сумму '|| NEW.ammount ||' успешно оплачен ' || TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS'));
+    END IF;
+    -- Проверим, изменился ли статус на 8 (собран)    
+    IF NEW.status = 8 THEN
+        -- Получим email покупателя
+        SELECT email INTO customer_email FROM ishop.customer WHERE id = NEW.customer;
+        SELECT name INTO customer_name FROM ishop.customer WHERE id = NEW.customer;    
+        -- Вставим запись в таблицу letter
+        INSERT INTO ishop.letter (moment, email, mail) 
+        VALUES (CURRENT_TIMESTAMP, customer_email, 
+        'Здравствуйте, '|| customer_name ||'! Ваш заказ № ' || NEW.id || ' собран. Чтобы мы его передали в доставку, оплатите за него сумму '|| NEW.ammount ||' до ' || TO_CHAR(NOW() + INTERVAL '3 days', 'YYYY-MM-DD HH24:MI:SS') || ' по <a href="https://forms.yandex.ru/u/66b1b9dd068ff0a5d6d7dae7">ссылке</a>');
     END IF;    
     RETURN NEW;
 END
 $function$
+
 
 -- триггер на таблицу orders
 CREATE OR REPLACE TRIGGER trg_update_order_status
 AFTER UPDATE ON orders
 FOR EACH ROW
 WHEN (OLD.status IS DISTINCT FROM NEW.status)
-EXECUTE FUNCTION update_order_status();
+EXECUTE FUNCTION ishop.update_order_status();
