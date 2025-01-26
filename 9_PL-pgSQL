@@ -63,6 +63,6 @@ $function$
 
 -- триггер, который будет вызывать эту функцию при вставке данных в таблицу application:
 CREATE OR REPLACE TRIGGER trg_process_application
-AFTER INSERT ON application
+AFTER INSERT ON ishop.application
 FOR EACH ROW
 EXECUTE FUNCTION ishop.process_application();
