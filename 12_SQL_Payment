@@ -16,7 +16,7 @@ END;
 $function$
 
 -- триггер, который будет вызывать эту функцию при изменении данных в payment:
-CREATE OR REPLACE TRIGGER update_order_status_trigger_by_payment
+CREATE OR REPLACE TRIGGER update_order_status_on_pay
 AFTER INSERT ON payment
 FOR EACH ROW
 EXECUTE FUNCTION ishop.update_order_status_on_pay();
